@@ -4,7 +4,7 @@ We choose Cary as our actor (utility) for this test case.
 ## Characteristics of Cary
 Total reservoir capacity: 14.9 bil gal\
 Receives all of its supply from Jordan Lake (35.5% of total supply allocation)\
-The only utility that operates a water treatment plant on the Jordan Lake\
+The only utility that operates a water treatment plant on the Jordan Lake
 
 ## Assumptions
 1. Cary is the only actor in this system
@@ -20,7 +20,7 @@ The only utility that operates a water treatment plant on the Jordan Lake\
 Demands: million gallons/week\
 Inflows: million gallons/week\
 Evaporation rate: million gallons/week\
-Storage: billion gallons\
+Storage: billion gallons
 
 ## Files
 1. cary_demand.csv: 250 realizations of 26 years of projected future demands
@@ -37,12 +37,12 @@ ROF tables (csv files) found in the rof_tables folder
 ## REFERENCES
 Gold et al 2019, Identifying Actionable Compromises: Navigating Multi-City Robustness
 Conflicts to Discover Cooperative Safe Operativng Spaces for Regional Water Supply
-Portfolios\
+Portfolios
 
 Trindade et al 2019, Deeply uncertain pathways: Integrated multi-city regional water 
-supply infrastructure investment and portfolio management\
+supply infrastructure investment and portfolio management
 
 Zeff et al 2014, Cooperative drought adaptation: Intergrating infrastructure development,
-conservation, and water transfers into adaptive policy pathways\
+conservation, and water transfers into adaptive policy pathways
 
 
