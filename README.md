@@ -21,6 +21,7 @@ Demands: million gallons/week
 Inflows: million gallons/week
 Evaporation rate: million gallons/week
 Storage: billion gallons
+
 ## Files
 1. cary_demand.csv: 1000 realizations of 26 years of projected future demands
 2. jordan_lake_evap.csv: 1000 realizations of 98 years of synthetic stationary evaporation rates for Jordan Lake
