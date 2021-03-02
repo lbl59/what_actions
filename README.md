@@ -10,7 +10,7 @@ The only utility that operates a water treatment plant on the Jordan Lake
 1. Cary is the only actor in this system
 2. Only Jordan Lake evaporation and inflows are significant to Cary
 3. Cary receives 35.5% of the Jordan Lake inflows
-4. No infrastructure will be triggered throughout the 46 years of simulation
+4. No infrastructure will be triggered throughout the 26 years of simulation
 5. No spillage
 6. Failure criteria: reservoir storage (Jordan Lake) drops below 20% of capacity for 
    at least one week in a given year
