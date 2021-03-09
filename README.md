@@ -22,17 +22,18 @@ Inflows: million gallons/week\
 Evaporation rate: million gallons/week\
 Storage: billion gallons
 
-## Files
+## Data files
 1. cary_demand.csv: 250 realizations of 26 years of projected future demands
 2. jordan_lake_evap.csv: 250 realizations of 98 years of synthetic stationary evaporation rates for Jordan Lake
 3. jordan_lake_inflow.csv: 250 realizations of 98 years of synthetic stationary inflows to Jordan Lake
 
-## Output
-ROF tables (csv files) found in the rof_tables folder
-- the rows are the reservoir storage level (0%, 5%,...100%)
-- the columns are the ROF for a week in the demand timeseries
-
-10 realizations takes ~34 minutes
+## Code files
+1. toy_problem: generates a folder containing the ROF tables for the desired number of realizations
+   - ROF tables (csv files) found in the rof_tables folder
+   - the rows are the reservoir storage level (0%, 5%,...100%)
+   - the columns are the ROF for a week in the demand timeseries
+   - 10 realizations takes ~34 minutes
+2. reliability: generates a figure showing the relationship between system reliability and different $\alpha$ values
 
 ## REFERENCES
 Gold et al 2019, Identifying Actionable Compromises: Navigating Multi-City Robustness
