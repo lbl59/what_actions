@@ -1,0 +1,161 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+import glob
+
+sns.set_theme()
+# Get cwd code thanks to https://thispointer.com/python-how-to-get-the-current-working-directory/
+# Modify filenames and locations depending on test case ############
+cwd = os.getcwd()
+evap_file = cwd + "\water_balance_files\jordan_lake_evap.csv"
+inflow_file = cwd + "\water_balance_files\jordan_lake_inflows.csv"
+demand_file = cwd + "\water_balance_files\cary_demand.csv"
+
+# Load .csv files  ##################################################
+evap = np.loadtxt(evap_file, delimiter=",")
+inflows = np.loadtxt(inflow_file, delimiter=",")
+demand = np.loadtxt(demand_file, delimiter=",")
+
+rof_tables = []
+for each_file in glob.glob('C:/Users/lilli/Desktop/Training/Risk-of-Failure/rof_tables/*.csv'):
+    rof_tables.append(each_file)
+
+# Fixed values ######################################################
+reservoir_capacity = 14.9*(10**3)
+n_weeks = 52
+n_years = int(np.floor(demand.shape[1] / n_weeks))
+utility = "Cary"
+n_sym_years = int(demand.shape[1] / n_weeks)
+n_sym_weeks = int(demand.shape[1])
+
+# to modify ##########################################################
+N_reals = 3  # number of realizations
+s_0 = reservoir_capacity*0.40      # set an arbitrary starting storage level
+n_hist_years = 50
+
+# Helper functions ##################################################
+# Calculates next storage given values of storage, evaporation rates,
+# inflows and demands at current timestep
+# @param s_t, e_t, i_t, d_t Storage, evaporation rate, inflow and demand at time t
+# @returns Storage at time t+1
+def calc_storage(s_t, e_t, i_t, d_t):
+    return s_t + e_t + i_t - d_t
+
+# Checks if the current storage is lower than 20% of full capacity
+# @param st_next The storage at the next timestep
+# @retuns 1 if failure is detected, 0 otherwise
+def check_failure(st_next):
+    if (st_next/reservoir_capacity) < 0.2:
+        return 1
+    else:
+        return 0
+
+# Evaluates ROF for the demand timeseries of realization
+# @returns the predicted ROFs for this realization
+def rof_evaluation(s_0, demand, inflows, evap, r):
+    # rof timeseries for realization r
+    rof_r = np.zeros(n_sym_weeks-n_weeks, dtype=float)
+
+    demand_r = demand[r,:]
+    print("Realization = ", r)
+    for w in range(n_sym_weeks):
+        # inflow and evaporation rate start time
+        synth_start = inflows.shape[1] - demand.shape[1]
+        end_point = synth_start + w
+        start_point = end_point - (n_hist_years*n_weeks)
+
+        evap_r = evap[r, start_point:]
+        inflows_r = inflows[r, start_point:]
+        fail_count = 0
+
+        demand_year = demand_r[w-n_weeks:w]
+        # for this demand timeseries (vector) and initial storage (const)
+        # obtain the probability of failure over 50 years of
+        # historical inflow and evaporation rates
+        for n in range(n_hist_years):
+            # evap_year and inflow_year should have length 52
+            evap_year = evap_r[n*n_weeks : (n+1)*n_weeks]
+            inflow_year = inflows_r[n*n_weeks :  (n+1)*n_weeks]
+            s_t = s_0
+            for d in range(len(demand_year)):
+                s_tnext = calc_storage(s_t, evap_year[d], inflow_year[d], demand_year[d])
+                if (check_failure(s_tnext) == 0):
+                    s_t = s_tnext
+                else:
+                    fail_count += 1
+                    break
+        rof_r[w-n_weeks] = fail_count / n_hist_years
+
+    return rof_r
+
+# Evaluates if any of the weekly ROFs in the current  realization exceed alpha
+# If true, trigger a restriction, else do nothing
+# @returns an array of 1 or 0 depending on if restrictions are triggered
+def restriction_check(rof_r, alpha):
+    restriction = np.zeros(len(rof_r), dtype=int)
+    for i in range(len(rof_r)):
+        if rof_r[i] >= alpha:
+            restriction[i] = 1
+    #print(restriction)
+    return restriction
+
+def storage_r(s_0, demand, inflows, evap, r, alpha):
+    rof_r = rof_evaluation(s_0, demand, inflows, evap, r)
+    restriction = restriction_check(rof_r, alpha)
+    sp = inflows.shape[1] - demand.shape[1] + n_weeks
+
+    demand_r = demand[r, n_weeks:]
+    inflow_r = inflows[r, sp:]
+    evap_r = evap[r, sp:]
+    storage_r = np.zeros(len(demand_r), dtype=float)
+
+    storage_r[0] = s_0
+    rf = 0      # restriction frequency
+    i = 1
+    while i < len(demand_r):
+        # during water restrictions, only 90% of demand is met
+        if restriction[i-1] == 1:
+            rf += 1
+            mth = np.min([4, len(demand_r)-i])
+            for m in range(mth):
+                storage_r[i+m] = calc_storage(storage_r[i+m-1], evap_r[i+m-1], inflow_r[i+m-1], 0.9*demand_r[i+m-1])
+            i += mth
+        else:
+            storage_r[i] = calc_storage(storage_r[i-1], evap_r[i-1], inflow_r[i-1], demand_r[i-1])
+            i += 1
+    return rf, storage_r
+
+# check reliability and avg restriction frequency for a given alpha
+def reliability_rf_check(s_0, demand, inflows, evap, N_reals, alpha):
+    reliability_fail = 0
+    rf_tot = 0
+    for r in range(N_reals):
+        rf_r, st_r = storage_r(s_0, demand, inflows, evap, r, alpha)
+        rf_tot += rf_r
+        if (np.any(st_r) < 0.2*reservoir_capacity):
+            reliability_fail += 1
+    rel = reliability_fail/N_reals
+    rf_avg = rf_tot/N_reals
+    return rel, rf_avg
+
+# tradeoff between reliability and restriction frequency
+alpha_vec = np.arange(0,1.005, 0.05)
+reliability = np.zeros(len(alpha_vec), dtype=float)
+restr_freq = np.zeros(len(alpha_vec), dtype=float)
+for i in range(len(alpha_vec)):
+    print("alpha = ", alpha_vec[i])
+    a = alpha_vec[i]
+    rel, rf_avg = reliability_rf_check(s_0, demand, inflows, evap, N_reals, a)
+    reliability[i] = rel
+    restr_freq[i] = rf_avg
+
+plt.scatter(reliability, restr_freq, c=alpha_vec, cmap="YlOrBr")
+plt.xlabel(r'Maximize reliability $\rightarrow$')
+plt.ylabel(r'$\leftarrow$ Decreasing restriction frequency')
+plt.title(r'Tradeoff between reliability and average restriction frequency \n 100 realizations')
+cbar = plt.colorbar()
+cbar.set_label(r'ROF trigger $\alpha$')
+plt.savefig("RF_vs_Rel.png")
+plt.show()
