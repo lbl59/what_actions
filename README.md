@@ -2,8 +2,8 @@
 We choose Cary as our actor (utility) for this test case.
 
 ## Characteristics of Cary
-Total reservoir capacity: 14.9 bil gal\
-Receives all of its supply from Jordan Lake (35.5% of total supply allocation)\
+Total reservoir capacity: 7.45 bil gal\
+Receives all of its supply from Jordan Lake\
 The only utility that operates a water treatment plant on the Jordan Lake
 
 ## Assumptions
