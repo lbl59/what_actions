@@ -14,12 +14,12 @@ inflow_file = cwd + "\water_balance_files\jordan_lake_inflows.csv"
 demand_file = cwd + "\water_balance_files\cary_demand.csv"
 
 # Load .csv files  ##################################################
-evap = np.loadtxt(evap_file, delimiter=",")
-inflows = np.loadtxt(inflow_file, delimiter=",")
-demand = np.loadtxt(demand_file, delimiter=",")
+evap = 2*np.loadtxt(evap_file, delimiter=",")
+inflows = 0.20*np.loadtxt(inflow_file, delimiter=",")
+demand = 1.1*np.loadtxt(demand_file, delimiter=",")
 
 # Fixed values ######################################################
-reservoir_capacity = 14.9*(10**3)
+reservoir_capacity = 14.9*(10**3)*0.5
 n_weeks = 52
 n_years = int(np.floor(demand.shape[1] / n_weeks))
 utility = "Cary"
@@ -44,13 +44,15 @@ def check_failure(st_next):
     else:
         return 0
 
-# Calculates next storage given values of storage, evaporation rates,
-# inflows and demands at current timestep
-# @param s_t, e_t, i_t, d_t Storage, evaporation rate, inflow and demand at time t
-# @returns Storage at time t+1
-
+# Helper functions ##################################################
 def calc_storage(s_t, e_t, i_t, d_t):
-    return s_t + e_t + i_t - d_t
+    s_tnext = s_t - e_t + i_t - d_t
+    if (s_tnext/reservoir_capacity) >= 1.0:
+        return reservoir_capacity
+    elif s_tnext < 0:
+        return 0.0
+    else:
+        return s_tnext
 
 # Ensures that the folder to store the ROF tables exists
 # If the folder does not yet exist, create one
@@ -92,9 +94,11 @@ for r in range(N_reals):
             # obtain the probability of failure over 50 years of
             # historical inflow and evaporation rates
             for n in range(n_hist_years):
+                idx_start = n*n_weeks + (w-n_weeks)
+                idx_end = (n+1)*n_weeks + (w-n_weeks)
                 # evap_year and inflow_year should have length 52
-                evap_year = evap_timeseries[(n*n_weeks) : (n+1)*n_weeks]
-                inflow_year = inflow_timeseries[(n*n_weeks) :  (n+1)*n_weeks]
+                evap_year = evap_timeseries[idx_start : idx_end]
+                inflow_year = inflow_timeseries[idx_start : idx_end]
                 s_t = storage_tier
                 for d in range(len(demand_year)):
                     s_tnext = calc_storage(s_t, evap_year[d], inflow_year[d], demand_year[d])
