@@ -11,10 +11,10 @@ sns.set_style("white")
 # Get cwd code thanks to https://thispointer.com/python-how-to-get-the-current-working-directory/
 # Modify filenames and locations depending on test case ############
 cwd = os.getcwd()
-storage_filename = cwd + "/dynamics/str_dynamics/str_dynamics_1.0_0.15.csv"
-demand_filename = cwd + "/dynamics/restr_demand/restr_demand_1.0_0.15.csv"
-rf_filename = cwd + "/dynamics/restr_freq/restr_freq_1.0_0.15.csv"
-risk_filename = cwd + "/dynamics/short_term_risk/risk_1.0_0.15.csv"
+storage_filename = cwd + "/dynamics/str_dynamics/str_dynamics_1.0_0.01.csv"
+demand_filename = cwd + "/dynamics/restr_demand/restr_demand_1.0_0.01.csv"
+rf_filename = cwd + "/dynamics/restr_freq/restr_freq_1.0_0.01.csv"
+risk_filename = cwd + "/dynamics/short_term_risk/risk_1.0_0.01.csv"
 
 storage = np.loadtxt(storage_filename, delimiter = ",")
 restr_demand = np.loadtxt(demand_filename, delimiter = ",")
@@ -61,7 +61,7 @@ def find_droughts(realization):
 demand_file = cwd + "/water_balance_files/cary_demand.csv"
 inflow_file = cwd + "/water_balance_files/jordan_lake_inflows.csv"
 
-inflows = 0.05*np.loadtxt(inflow_file, delimiter=",")
+inflows = 0.20*np.loadtxt(inflow_file, delimiter=",")
 demand = 1.1*np.loadtxt(demand_file, delimiter=",")
 sp = inflows.shape[1] - demand.shape[1] + 52
 inflow_r = pd.DataFrame(np.log(inflows[r, sp:]).flatten()).fillna(method='pad')
@@ -92,7 +92,7 @@ yr = np.arange(0,2341,780)
 #print(len(year_strings))
 #print(len(yr))
 ax[0].vlines(x=restriction_year, ymin=0, ymax=100, color="maroon", linewidth=1.2, label="restrictions")
-ax[0].hlines(y=15, xmin=0, xmax=2340, linewidth=1.2, color="crimson", linestyle=(0,(5,10)), label=r"$\alpha$ = 15%")
+ax[0].hlines(y=1, xmin=0, xmax=2340, linewidth=1.2, color="crimson", linestyle=(0,(5,10)), label=r"$\alpha$ = 1%")
 ax[0].plot(years, rof_r, color="orange", linewidth=1.5, label="ROF values", )
 
 #ax[0].set_xlabel("Year",fontsize=14)
@@ -111,9 +111,9 @@ ax[1].set_ylabel(r"$SSI_{6}$")
 ax[1].set_xticks(yr)
 ax[1].set_xticklabels(year_strings, fontsize=14)
 
-plt.suptitle(r"Storage dynamics over time ($\alpha$ = 15%)")
+plt.suptitle(r"Storage dynamics over time ($\alpha$ = 1%)")
 handles, labels = [(a + b + c) for a, b, c in zip(ax[0].get_legend_handles_labels(), ax2.get_legend_handles_labels(), ax[1].get_legend_handles_labels())]
 ax[1].legend(handles, labels, loc="upper right")
 fig.tight_layout()
-plt.savefig("Figures/storage_dynamics_015.png")
+plt.savefig("Figures/storage_dynamics_001.png")
 plt.show()
